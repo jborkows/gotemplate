@@ -52,12 +52,12 @@ func TestConnectionString(t *testing.T) {
 	}
 	defer db.Close()
 
-	err = queries.Execute(context.Background(), db.DB, func(tx *sql.Tx) error {
+	err = queries.Execute(context.Background(), db, func(tx *sql.Tx) error {
 		var journalMode, foreignKeys string
 		var cacheSize int
-		db.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
-		db.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeys)
-		db.QueryRow("PRAGMA cache_size").Scan(&cacheSize)
+		tx.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
+		tx.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeys)
+		tx.QueryRow("PRAGMA cache_size").Scan(&cacheSize)
 
 		fmt.Printf("Journal mode: %s\n", journalMode)
 		fmt.Printf("Foreign keys enabled: %s\n", foreignKeys)

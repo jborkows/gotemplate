@@ -35,7 +35,7 @@ func NewDatabase(filePath string) (*Database, error) {
 }
 
 func (d *Database) Optimize() error {
-	return Execute(context.Background(), d.DB, func(tx *sql.Tx) error {
+	return Execute(context.Background(), d, func(tx *sql.Tx) error {
 		_, err := tx.Exec("PRAGMA optimize")
 		return err
 	})
@@ -44,17 +44,17 @@ func (d *Database) Optimize() error {
 func (d *Database) Close() error {
 	return d.DB.Close()
 }
-func Execute(ctx context.Context, db *sql.DB, exec func(*sql.Tx) error) error {
-	_, err := RunTransaction(ctx, db, nil, func(tx *sql.Tx) (interface{}, error) {
+func Execute(ctx context.Context, db *Database, exec func(*sql.Tx) error) error {
+	_, err := RunTransaction(ctx, db, func(tx *sql.Tx) (*interface{}, error) {
 		return nil, exec(tx)
 	})
 	return err
 }
 
-func RunTransaction[T any](ctx context.Context, db *sql.DB, defaulValue T, exec func(*sql.Tx) (T, error)) (T, error) {
+func RunTransaction[T any](ctx context.Context, db *Database, exec func(*sql.Tx) (*T, error)) (*T, error) {
 	tx, err := db.Begin()
 	if err != nil {
-		return defaulValue, fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
@@ -68,11 +68,11 @@ func RunTransaction[T any](ctx context.Context, db *sql.DB, defaulValue T, exec 
 
 	value, err := exec(tx)
 	if err != nil {
-		return defaulValue, fmt.Errorf("Executing exec %w", err)
+		return nil, fmt.Errorf("Executing exec %w", err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return defaulValue, fmt.Errorf("failed to commit transaction: %w", err)
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return value, nil
