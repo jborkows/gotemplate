@@ -14,6 +14,6 @@ failed-tests:
 	@echo "Running tests..."
 	@go test ./... -v -race -shuffle=on -json | jq '.|select(.Action=="fail" and .Test!=null)'
 migrate:
-	@migrate -database "sqlite3://./gotemplate.db?journal_mode=WAL" -path db/migrations up
+	@migrate -database "sqlite3://./gotemplate.db?journal_mode=WAL&foreign_keys=true&cache_size=2000" -path db/migrations up
 	@sqlc generate -f ./config/sqlc.yaml
 
