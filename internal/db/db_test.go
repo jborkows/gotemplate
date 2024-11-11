@@ -14,6 +14,9 @@ import (
 	queries "github.com/jborkows/gotemplate/internal/db"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+
+	"github.com/jborkows/gotemplate/internal/logs"
 )
 
 func runMigrations(db *sql.DB) error {
@@ -53,7 +56,15 @@ func TestConnectionString(t *testing.T) {
 	}
 	defer db.Close()
 
-	err = queries.Execute(context.Background(), db, func(tx *sql.Tx) error {
+	tracerClean := logs.Tracer("main")
+	defer tracerClean()
+	tracer := otel.Tracer("quering")
+
+	ctx := context.Background()
+	// Start a new span for this function
+	_, span := tracer.Start(ctx, "doWork-span")
+	defer span.End()
+	err = queries.Execute(ctx, db, func(tx *sql.Tx) error {
 		var journalMode, foreignKeys string
 		var cacheSize int
 		if err = tx.QueryRow("PRAGMA journal_mode").Scan(&journalMode); err != nil {

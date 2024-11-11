@@ -22,9 +22,9 @@ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 go install github.com/mattn/go-sqlite3
+
+go mod tidy
 make migrate
 make tests
 
-go mod init $1
-go mod tidy
 popd || exit

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/uptrace/opentelemetry-go-extra/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"log"
 	"time"
 )
@@ -15,7 +17,9 @@ type Database struct {
 func NewDatabase(filePath string) (*Database, error) {
 
 	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_foreign_keys=ON&_cache_size=2000&_busy_timeout=5000", filePath)
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := otelsql.Open("sqlite3", dsn,
+		otelsql.WithAttributes(semconv.DBSystemSqlite),
+		otelsql.WithDBName("mydb"))
 	if err != nil {
 		log.Printf("Error opening database: %v\n", err)
 		return nil, fmt.Errorf("While opening %w", err)
