@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
@@ -55,9 +56,15 @@ func TestConnectionString(t *testing.T) {
 	err = queries.Execute(context.Background(), db, func(tx *sql.Tx) error {
 		var journalMode, foreignKeys string
 		var cacheSize int
-		tx.QueryRow("PRAGMA journal_mode").Scan(&journalMode)
-		tx.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeys)
-		tx.QueryRow("PRAGMA cache_size").Scan(&cacheSize)
+		if err = tx.QueryRow("PRAGMA journal_mode").Scan(&journalMode); err != nil {
+			return err
+		}
+		if err = tx.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeys); err != nil {
+			return err
+		}
+		if err = tx.QueryRow("PRAGMA cache_size").Scan(&cacheSize); err != nil {
+			return err
+		}
 
 		fmt.Printf("Journal mode: %s\n", journalMode)
 		fmt.Printf("Foreign keys enabled: %s\n", foreignKeys)
@@ -67,11 +74,14 @@ func TestConnectionString(t *testing.T) {
 		assert.Equal(t, 2000, cacheSize)
 		return nil
 	})
-	db.Optimize()
 
 	if err != nil {
-		fmt.Printf("Quering database: %v\n", err)
-		return
+		log.Fatalf("Quering database: %v\n", err)
+	}
+	err = db.Optimize()
+
+	if err != nil {
+		log.Fatalf("Optimizing database: %v\n", err)
 	}
 
 }

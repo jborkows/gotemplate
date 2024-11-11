@@ -59,10 +59,14 @@ func RunTransaction[T any](ctx context.Context, db *Database, exec func(*sql.Tx)
 
 	defer func() {
 		if r := recover(); r != nil {
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				panic(fmt.Errorf("failed to rollback transaction: %w", err))
+			}
 			panic(r) // Re-panic after rollback
 		} else if err != nil {
-			tx.Rollback() // Rollback on error
+			if err := tx.Rollback(); err != nil {
+				panic(fmt.Errorf("failed to rollback transaction: %w", err))
+			}
 		}
 	}()
 
