@@ -10,6 +10,7 @@ mkdir $1
 cp -r * $1
 rm $1/create_new.sh
 rm -r $1/.git
+rm $1/go.sum
 projectName=$(basename "$1")
 pushd $1 || exit 
 git init
