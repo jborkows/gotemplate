@@ -8,6 +8,8 @@ fi
 mkdir $1
 
 cp -r * $1
+cp -r .gitignore $1
+cp -r .github $1
 rm $1/create_new.sh
 rm -r $1/.git || echo "No .git folder found"
 rm $1/go.sum
